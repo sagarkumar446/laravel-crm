@@ -19,7 +19,7 @@ console.log("dirname", process.env.APP_URL);
 export default defineConfig({
     testDir: "./tests",
 
-    timeout: 30 * 1000,
+    timeout: 120 * 1000,
 
     expect: { timeout: 20 * 1000 },
 

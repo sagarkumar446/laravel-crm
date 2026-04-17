@@ -122,7 +122,7 @@ class Lead extends AbstractReporting
     {
         return [
             'previous' => $previous = $this->getTotalLeads($this->lastStartDate, $this->lastEndDate),
-            'current'  => $current = $this->getTotalLeads($this->startDate, $this->endDate),
+            'current' => $current = $this->getTotalLeads($this->startDate, $this->endDate),
             'progress' => $this->getPercentageChange($previous, $current),
         ];
     }
@@ -130,8 +130,8 @@ class Lead extends AbstractReporting
     /**
      * Retrieves total leads by date
      *
-     * @param  \Carbon\Carbon  $startDate
-     * @param  \Carbon\Carbon  $endDate
+     * @param  Carbon  $startDate
+     * @param  Carbon  $endDate
      */
     public function getTotalLeads($startDate, $endDate): int
     {
@@ -148,7 +148,7 @@ class Lead extends AbstractReporting
     {
         return [
             'previous' => $previous = $this->getAverageLeadsPerDay($this->lastStartDate, $this->lastEndDate),
-            'current'  => $current = $this->getAverageLeadsPerDay($this->startDate, $this->endDate),
+            'current' => $current = $this->getAverageLeadsPerDay($this->startDate, $this->endDate),
             'progress' => $this->getPercentageChange($previous, $current),
         ];
     }
@@ -156,8 +156,8 @@ class Lead extends AbstractReporting
     /**
      * Retrieves average leads per day
      *
-     * @param  \Carbon\Carbon  $startDate
-     * @param  \Carbon\Carbon  $endDate
+     * @param  Carbon  $startDate
+     * @param  Carbon  $endDate
      */
     public function getAverageLeadsPerDay($startDate, $endDate): float
     {
@@ -176,18 +176,18 @@ class Lead extends AbstractReporting
     public function getTotalLeadValueProgress(): array
     {
         return [
-            'previous'        => $previous = $this->getTotalLeadValue($this->lastStartDate, $this->lastEndDate),
-            'current'         => $current = $this->getTotalLeadValue($this->startDate, $this->endDate),
+            'previous' => $previous = $this->getTotalLeadValue($this->lastStartDate, $this->lastEndDate),
+            'current' => $current = $this->getTotalLeadValue($this->startDate, $this->endDate),
             'formatted_total' => core()->formatBasePrice($current),
-            'progress'        => $this->getPercentageChange($previous, $current),
+            'progress' => $this->getPercentageChange($previous, $current),
         ];
     }
 
     /**
      * Retrieves total lead value
      *
-     * @param  \Carbon\Carbon  $startDate
-     * @param  \Carbon\Carbon  $endDate
+     * @param  Carbon  $startDate
+     * @param  Carbon  $endDate
      */
     public function getTotalLeadValue($startDate, $endDate): float
     {
@@ -203,18 +203,18 @@ class Lead extends AbstractReporting
     public function getAverageLeadValueProgress(): array
     {
         return [
-            'previous'        => $previous = $this->getAverageLeadValue($this->lastStartDate, $this->lastEndDate),
-            'current'         => $current = $this->getAverageLeadValue($this->startDate, $this->endDate),
+            'previous' => $previous = $this->getAverageLeadValue($this->lastStartDate, $this->lastEndDate),
+            'current' => $current = $this->getAverageLeadValue($this->startDate, $this->endDate),
             'formatted_total' => core()->formatBasePrice($current),
-            'progress'        => $this->getPercentageChange($previous, $current),
+            'progress' => $this->getPercentageChange($previous, $current),
         ];
     }
 
     /**
      * Retrieves average lead value
      *
-     * @param  \Carbon\Carbon  $startDate
-     * @param  \Carbon\Carbon  $endDate
+     * @param  Carbon  $startDate
+     * @param  Carbon  $endDate
      */
     public function getAverageLeadValue($startDate, $endDate): float
     {
@@ -230,18 +230,18 @@ class Lead extends AbstractReporting
     public function getTotalWonLeadValueProgress(): array
     {
         return [
-            'previous'        => $previous = $this->getTotalWonLeadValue($this->lastStartDate, $this->lastEndDate),
-            'current'         => $current = $this->getTotalWonLeadValue($this->startDate, $this->endDate),
+            'previous' => $previous = $this->getTotalWonLeadValue($this->lastStartDate, $this->lastEndDate),
+            'current' => $current = $this->getTotalWonLeadValue($this->startDate, $this->endDate),
             'formatted_total' => core()->formatBasePrice($current),
-            'progress'        => $this->getPercentageChange($previous, $current),
+            'progress' => $this->getPercentageChange($previous, $current),
         ];
     }
 
     /**
      * Retrieves average won lead value
      *
-     * @param  \Carbon\Carbon  $startDate
-     * @param  \Carbon\Carbon  $endDate
+     * @param  Carbon  $startDate
+     * @param  Carbon  $endDate
      * @return array
      */
     public function getTotalWonLeadValue($startDate, $endDate): ?float
@@ -259,18 +259,18 @@ class Lead extends AbstractReporting
     public function getTotalLostLeadValueProgress(): array
     {
         return [
-            'previous'        => $previous = $this->getTotalLostLeadValue($this->lastStartDate, $this->lastEndDate),
-            'current'         => $current = $this->getTotalLostLeadValue($this->startDate, $this->endDate),
+            'previous' => $previous = $this->getTotalLostLeadValue($this->lastStartDate, $this->lastEndDate),
+            'current' => $current = $this->getTotalLostLeadValue($this->startDate, $this->endDate),
             'formatted_total' => core()->formatBasePrice($current),
-            'progress'        => $this->getPercentageChange($previous, $current),
+            'progress' => $this->getPercentageChange($previous, $current),
         ];
     }
 
     /**
      * Retrieves average lost lead value
      *
-     * @param  \Carbon\Carbon  $startDate
-     * @param  \Carbon\Carbon  $endDate
+     * @param  Carbon  $startDate
+     * @param  Carbon  $endDate
      * @return array
      */
     public function getTotalLostLeadValue($startDate, $endDate): ?float
@@ -341,8 +341,8 @@ class Lead extends AbstractReporting
     /**
      * Returns over time stats.
      *
-     * @param  \Carbon\Carbon  $startDate
-     * @param  \Carbon\Carbon  $endDate
+     * @param  Carbon  $startDate
+     * @param  Carbon  $endDate
      * @param  string  $valueColumn
      * @param  string  $dateColumn
      * @param  string  $period
@@ -395,7 +395,7 @@ class Lead extends AbstractReporting
 
         while ($current <= $endDate) {
             $interval = [
-                'key'   => $this->formatDateForGrouping($current, $period),
+                'key' => $this->formatDateForGrouping($current, $period),
                 'label' => $this->formatDateForLabel($current, $period),
             ];
 

@@ -15,6 +15,7 @@ use Webkul\Admin\Http\Controllers\Controller;
 use Webkul\Admin\Http\Requests\AttributeForm;
 use Webkul\Admin\Http\Requests\MassDestroyRequest;
 use Webkul\Admin\Http\Resources\QuoteResource;
+use Webkul\Attribute\Repositories\AttributeRepository;
 use Webkul\Core\Traits\PDFHandler;
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Quote\Repositories\QuoteRepository;
@@ -30,7 +31,8 @@ class QuoteController extends Controller
      */
     public function __construct(
         protected QuoteRepository $quoteRepository,
-        protected LeadRepository $leadRepository
+        protected LeadRepository $leadRepository,
+        protected AttributeRepository $attributeRepository
     ) {
         request()->request->add(['entity_type' => 'quotes']);
     }
@@ -52,9 +54,26 @@ class QuoteController extends Controller
      */
     public function create(): View
     {
-        $lead = $this->leadRepository->find(request('id'));
+        $leadId = request('lead_id');
 
-        return view('admin::quotes.create', compact('lead'));
+        $lead = $leadId ? $this->leadRepository->find($leadId) : null;
+
+        $quote = $this->quoteRepository->getModel();
+
+        if ($lead) {
+            $quote->fill([
+                'person_id' => $lead->person_id,
+                'user_id' => $lead->user_id,
+                'billing_address' => $lead->person->organization?->address,
+                'expired_at' => $lead->expected_close_date ?? now()->toDateString(),
+            ]);
+        }
+
+        $leadProducts = $this->getLeadProductsForQuote($lead);
+
+        $lookUpEntityData = $this->attributeRepository->getLookUpEntity('leads', $leadId);
+
+        return view('admin::quotes.create', compact('lead', 'quote', 'leadProducts', 'lookUpEntityData'));
     }
 
     /**
@@ -62,6 +81,8 @@ class QuoteController extends Controller
      */
     public function store(AttributeForm $request): RedirectResponse
     {
+        $this->additionalValidation();
+
         Event::dispatch('quote.create.before');
 
         $quote = $this->quoteRepository->create($request->all());
@@ -90,7 +111,19 @@ class QuoteController extends Controller
     {
         $quote = $this->quoteRepository->findOrFail($id);
 
-        return view('admin::quotes.edit', compact('quote'));
+        $leadId = old('lead_id') ?? optional($quote->leads->first())->id;
+
+        $linkedLead = $leadId ? $this->leadRepository->find($leadId) : null;
+
+        $initialQuoteItems = $quote->items;
+
+        if ($initialQuoteItems->isEmpty() && $linkedLead?->products?->isNotEmpty()) {
+            $initialQuoteItems = collect($this->getLeadProductsForQuote($linkedLead));
+        }
+
+        $lookUpEntityData = $this->attributeRepository->getLookUpEntity('leads', $leadId);
+
+        return view('admin::quotes.edit', compact('quote', 'linkedLead', 'initialQuoteItems', 'lookUpEntityData'));
     }
 
     /**
@@ -98,6 +131,8 @@ class QuoteController extends Controller
      */
     public function update(AttributeForm $request, int $id): RedirectResponse
     {
+        $this->additionalValidation();
+
         Event::dispatch('quote.update.before', $id);
 
         $quote = $this->quoteRepository->update($request->all(), $id);
@@ -131,6 +166,18 @@ class QuoteController extends Controller
             ->all();
 
         return QuoteResource::collection($quotes);
+    }
+
+    /**
+     * Return products for the selected lead in quote payload format.
+     */
+    public function leadProducts(int $leadId): JsonResponse
+    {
+        $lead = $this->leadRepository->findOrFail($leadId);
+
+        return response()->json([
+            'data' => $this->getLeadProductsForQuote($lead),
+        ]);
     }
 
     /**
@@ -194,5 +241,51 @@ class QuoteController extends Controller
             view('admin::quotes.pdf', compact('quote'))->render(),
             'Quote_'.$quote->subject.'_'.$quote->created_at->format('d-m-Y')
         );
+    }
+
+    /**
+     * Additional validation for quote product items.
+     */
+    private function additionalValidation(): void
+    {
+        $this->validate(request(), [
+            'items' => 'required|array',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|numeric|min:0',
+            'items.*.price' => 'required|numeric|min:0',
+            'items.*.total' => 'required|numeric|min:0',
+            'items.*.discount_amount' => 'required|numeric|min:0',
+            'items.*.tax_amount' => 'required|numeric|min:0',
+            'items.*.final_total' => 'required|numeric|min:0',
+        ]);
+    }
+
+    /**
+     * Map linked lead products to quote item payload format.
+     */
+    private function getLeadProductsForQuote($lead): array
+    {
+        if (! $lead?->products?->isNotEmpty()) {
+            return [];
+        }
+
+        return $lead->products
+            ->map(function ($product) {
+                $quantity = (float) ($product->quantity ?: 1);
+                $price = (float) ($product->price ?: 0);
+
+                return [
+                    'id' => null,
+                    'product_id' => $product->product_id,
+                    'name' => $product->name,
+                    'quantity' => $quantity,
+                    'total' => $price * $quantity,
+                    'price' => $price,
+                    'discount_amount' => 0,
+                    'tax_amount' => 0,
+                ];
+            })
+            ->values()
+            ->toArray();
     }
 }
